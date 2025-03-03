@@ -1,6 +1,7 @@
-import express from 'express'
+import express, {Request, Response} from 'express'
 
 const app = express()
+
 const port = process.env.PORT || 3000
 
 const HTTP_STATUSES = {
@@ -15,69 +16,68 @@ const HTTP_STATUSES = {
 const jsonBodyMiddleware = express.json()
 app.use(jsonBodyMiddleware)
 
-const db = {
-  courses: [
-    {id: 1, title: 'front-end'},
-    {id: 2, title: 'back-end'},
-    {id: 3, title: 'automation qa'},
-    {id: 4, title: 'devops'},
-    {id: 5, title: 'machine learning'},
-  ],
-}
+const products = [{id: 1, title: 'tomato'}, {id: 2, title: 'orange'}]
+const addresses = [{id: 1, value: 'Nezalejnasti 12'}, {id: 2, value: 'Selickaga 11'}]
 
-app.get('/courses', (req, res) => {
-  let foundCourses = db.courses
+app.get('/products', (req: Request, res: Response) => {
   if (req.query.title) {
-    foundCourses = foundCourses.filter(c => c.title.indexOf(req.query.title as string) > -1)
+    let searchString = req.query.title.toString();
+    res.send(products.filter(p => p.title.indexOf(searchString) > -1))
+  } else {
+    res.send(products)
   }
-
-  res.json(foundCourses)
 })
-
-app.get('/courses/:id', (req, res) => {
-  let foundCourse = db.courses.find(c => c.id === +req.params.id)
-
-  if (!foundCourse) {
-    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
-    return
+app.get('/products/:id', (req: Request, res: Response) => {
+  let product = products.find(p => p.id === +req.params.id)
+  if (product) {
+    res.send(product)
+  } else {
+    res.send(HTTP_STATUSES.NOT_FOUND_404)
   }
-
-  res.json(foundCourse)
 })
-
-app.post('/courses', (req, res) => {
-  if (!req.body.title) {
-    res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400)
-    return
+app.delete('/products/:id', (req: Request, res: Response) => {
+  for (let i = 0; i < products.length; i++) {
+    if (products[i].id === +req.params.id) {
+      products.splice(i, 1)
+      res.send(HTTP_STATUSES.NO_CONTENT_204)
+      return
+    }
   }
 
-  const createdCourse = {id: +(new Date()), title: req.body.title}
-  db.courses.push(createdCourse)
-  console.log(createdCourse)
-  res.status(HTTP_STATUSES.CREATED_201).json(createdCourse)
+  res.send(HTTP_STATUSES.NOT_FOUND_404)
 })
-
-app.delete('/courses/:id', (req, res) => {
-  db.courses = db.courses.filter(c => c.id !== +req.params.id)
-
-  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
+app.get('/products/:productTitle', (req: Request, res: Response) => {
+  let product = products.find(p => p.title === req.params.productTitle)
+  if (product) {
+    res.send(product)
+  } else {
+    res.send(HTTP_STATUSES.NOT_FOUND_404)
+  }
 })
-
-app.put('/courses/:id', (req, res) => {
-  if (!req.body.title) {
-    res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400)
+app.get('/addresses', (req: Request, res: Response) => {
+  res.send(addresses)
+})
+app.get('/addresses/:id', (req: Request, res: Response) => {
+  let address = addresses.find(a => a.id === +req.params.id)
+  if (address) {
+    res.send(address)
+  } else {
+    res.send(HTTP_STATUSES.NOT_FOUND_404)
   }
-
-  let foundCourse = db.courses.find(c => c.id === +req.params.id)
-
-  if (!foundCourse) {
-    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
-    return
+})
+app.post('/products', (req: Request, res: Response) => {
+  const newProduct = {id: +(new Date()), title: req.body.title}
+  products.push(newProduct)
+  res.status(HTTP_STATUSES.CREATED_201).send(newProduct)
+})
+app.put('/products/:id', (req: Request, res: Response) => {
+  let product = products.find(p => p.id === +req.params.id)
+  if (product) {
+    product.title = req.body.title
+    res.send(product)
+  } else {
+    res.send(HTTP_STATUSES.NOT_FOUND_404)
   }
-
-  foundCourse.title = req.body.title
-
-  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
 })
 
 app.listen(port, () => {
