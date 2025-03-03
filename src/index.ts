@@ -21,6 +21,7 @@ const db = {
     {id: 2, title: 'back-end'},
     {id: 3, title: 'automation qa'},
     {id: 4, title: 'devops'},
+    {id: 5, title: 'machine learning'},
   ],
 }
 
