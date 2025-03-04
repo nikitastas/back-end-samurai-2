@@ -1,10 +1,10 @@
 import express, {Request, Response} from 'express'
 
-const app = express()
+export const app = express()
 
 const port = process.env.PORT || 3000
 
-const HTTP_STATUSES = {
+export const HTTP_STATUSES = {
   OK_200: 200,
   CREATED_201: 201,
   NO_CONTENT_204: 204,
@@ -16,8 +16,8 @@ const HTTP_STATUSES = {
 const jsonBodyMiddleware = express.json()
 app.use(jsonBodyMiddleware)
 
-const products = [{id: 1, title: 'tomato'}, {id: 2, title: 'orange'}]
-const addresses = [{id: 1, value: 'Nezalejnasti 12'}, {id: 2, value: 'Selickaga 11'}]
+let products = [{id: 1, title: 'tomato'}, {id: 2, title: 'orange'}]
+let addresses = [{id: 1, value: 'Nezalejnasti 12'}, {id: 2, value: 'Selickaga 11'}]
 
 app.get('/products', (req: Request, res: Response) => {
   if (req.query.title) {
@@ -32,14 +32,14 @@ app.get('/products/:id', (req: Request, res: Response) => {
   if (product) {
     res.send(product)
   } else {
-    res.send(HTTP_STATUSES.NOT_FOUND_404)
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
   }
 })
 app.delete('/products/:id', (req: Request, res: Response) => {
   for (let i = 0; i < products.length; i++) {
     if (products[i].id === +req.params.id) {
       products.splice(i, 1)
-      res.send(HTTP_STATUSES.NO_CONTENT_204)
+      res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
       return
     }
   }
@@ -51,7 +51,7 @@ app.get('/products/:productTitle', (req: Request, res: Response) => {
   if (product) {
     res.send(product)
   } else {
-    res.send(HTTP_STATUSES.NOT_FOUND_404)
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
   }
 })
 app.get('/addresses', (req: Request, res: Response) => {
@@ -62,7 +62,7 @@ app.get('/addresses/:id', (req: Request, res: Response) => {
   if (address) {
     res.send(address)
   } else {
-    res.send(HTTP_STATUSES.NOT_FOUND_404)
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
   }
 })
 app.post('/products', (req: Request, res: Response) => {
@@ -76,8 +76,17 @@ app.put('/products/:id', (req: Request, res: Response) => {
     product.title = req.body.title
     res.send(product)
   } else {
-    res.send(HTTP_STATUSES.NOT_FOUND_404)
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
   }
+})
+
+app.delete('/__test__/products', (req: Request, res: Response) => {
+  products = []
+  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
+})
+app.delete('/__test__/addresses', (req: Request, res: Response) => {
+  addresses = []
+  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
 })
 
 app.listen(port, () => {
